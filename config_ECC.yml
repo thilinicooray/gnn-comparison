@@ -1,7 +1,7 @@
 model:
   - ECC
 device:
-  - cpu
+  - cuda
 batch_size:
   - 32
 learning_rate:
