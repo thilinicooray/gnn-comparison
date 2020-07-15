@@ -1,0 +1,29 @@
+model:
+  - GCN
+device:
+  - cuda
+batch_size:
+  - 50
+dense_dim:
+  - 128
+
+learning_rate:
+  - 0.01
+num_epochs:
+  - 200
+optimizer:
+  - Adam
+scheduler:
+  - null
+loss:
+  - MulticlassClassificationLoss
+gradient_clipping:
+  - null
+l2:
+  - 0.
+embedding_dim:
+  - 32
+num_layers:
+  - 2
+dropout:
+  - 0.5
