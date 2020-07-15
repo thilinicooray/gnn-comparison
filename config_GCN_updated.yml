@@ -10,7 +10,7 @@ dense_dim:
 learning_rate:
   - 0.01
 num_epochs:
-  - 1000
+  - 200
 optimizer:
   - Adam
 scheduler:
@@ -22,7 +22,7 @@ gradient_clipping:
 l2:
   - 0.
 embedding_dim:
-  - 32
+  - 64
 num_layers:
   - 2
 dropout:
