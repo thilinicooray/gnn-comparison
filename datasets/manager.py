@@ -27,6 +27,8 @@ class GraphDatasetManager:
                  use_node_degree=False, use_node_attrs=False, use_one=False, precompute_kron_indices=False,
                  max_reductions=10, DATA_DIR='DATA'):
 
+        print('came to grahdataset mangr')
+
         self.root_dir = Path(DATA_DIR) / self.name
         self.kfold_class = kfold_class
         self.holdout_test_size = holdout_test_size
