@@ -11,7 +11,7 @@ k:
 learning_rate:
   - 0.00001
 num_epochs:
-  - 100
+  - 200
 optimizer:
   - Adam
 scheduler:
