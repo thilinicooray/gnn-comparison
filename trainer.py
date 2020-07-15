@@ -16,7 +16,7 @@ class Trainer:
 
     def __init__(self, model, loss_function, device='cuda'):
         self.model = model
-        self.loss_fun = loss_function
+        self.loss_fun = loss_function()
         self.device = torch.device(device)
 
     def _train(self, train_loader, optimizer, clipping=None):

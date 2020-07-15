@@ -64,7 +64,8 @@ if __name__ == "__main__":
         clipping = config_file['gradient_clipping'][0]
         sched_class = config_file['scheduler'][0]
 
-        dataset = dataset_classes[dataset_name]  # dataset_class()
+        dataset_class = dataset_classes[dataset_name]  # dataset_class()
+        dataset = dataset_class()
 
         #initialize the model
         model = DGCNN(dim_features=dataset._dim_features, dim_target=dataset._dim_target,
