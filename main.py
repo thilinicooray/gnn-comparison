@@ -41,7 +41,6 @@ if __name__ == "__main__":
     }
 
     config_file = args.config_file
-    experiment = args.experiment
 
     for dataset_name in datasets:
         learning_rate = config_file.learning_rate
