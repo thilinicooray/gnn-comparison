@@ -44,20 +44,20 @@ if __name__ == "__main__":
     config_file = utils.read_config_file(args.config_file)
 
     for dataset_name in datasets:
-        learning_rate = config_file.learning_rate
-        batch_size = config_file.batch_size
-        num_epochs = config_file.num_epochs
-        hidden_dim = config_file.hidden_dim
-        drop_out = config_file.drop_out
-        seed = config_file.seed
-        clipping = config_file.clipping
-        sched_class = config_file.sched_class
+        learning_rate = config_file['learning_rate']
+        batch_size = config_file['batch_size']
+        num_epochs = config_file['num_epochs']
+        drop_out = config_file['drop_out']
+        #seed = config_file['seed']
+        clipping = config_file['clipping']
+        sched_class = config_file['sched_class']
 
         dataset = dataset_classes[dataset_name]  # dataset_class()
 
         #initialize the model
         model = DGCNN(dim_features=dataset.dim_features, dim_target=dataset.dim_target,
-                      config={'embedding_dim':config_file.embedding_dim, 'num_layers':config_file.num_layers,'k':config_file.k, 'dataset_name': dataset_name})
+                      config={'embedding_dim':config_file['embedding_dim'], 'num_layers':config_file['num_layers'],
+                              'k':config_file['k'], 'dataset_name': dataset_name})
 
 
 
