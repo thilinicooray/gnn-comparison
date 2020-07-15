@@ -99,11 +99,10 @@ class GCN(nn.Module):
         for i in range(len(self.midlayer)):
 
             midgc = self.midlayer[i]
-            #bn = self.bnlayer[i]
             x = F.relu(self.bn(i+2, midgc(x, adj)))
             x = F.dropout(x, self.dropout, training=self.training)
 
-        x = self.outgc(x)
+        x = self.outgc(x, adj)
 
         graph_emb = torch.mean(x,1)
         print('graph embbd size ', graph_emb.size())
