@@ -76,22 +76,22 @@ if __name__ == "__main__":
 
         #todo: dense option
 
-        net = trainer.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
-
-        optimizer = torch.optim.Adam(model.parameters(),
-                                     lr=learning_rate, weight_decay=config_file['l2'][0])
-
-        if sched_class is not None:
-            scheduler = sched_class(optimizer)
-        else:
-            scheduler = None
-
 
         accs = []
         best_val_epoch = []
         for fold in range(10): #10 fold cross validation
             begin_time = time.time()
             dataset_getter = DatasetGetter(fold)
+
+            net = trainer.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
+
+            optimizer = torch.optim.Adam(model.parameters(),
+                                         lr=learning_rate, weight_decay=config_file['l2'][0])
+
+            if sched_class is not None:
+                scheduler = sched_class(optimizer)
+            else:
+                scheduler = None
 
             train_loader, val_loader = dataset_getter.get_train_val(dataset, batch_size,
                                                                     shuffle=True)
