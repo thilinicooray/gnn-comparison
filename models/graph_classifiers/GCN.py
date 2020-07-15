@@ -5,6 +5,7 @@ import torch
 from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
 from torch_geometric.utils import to_dense_adj
+from torch_geometric.nn import DenseGCNConv
 
 class Dense(Module):
     """
@@ -43,84 +44,7 @@ class Dense(Module):
                + str(self.in_features) + ' -> ' \
                + str(self.out_features) + ')'
 
-class GraphConvolutionBS(Module):
-    """
-    GCN Layer with BN, Self-loop and Res connection.
-    """
 
-    def __init__(self, in_features, out_features, activation=lambda x: x, withbn=True, withloop=True, bias=True,
-                 res=False):
-        """
-        Initial function.
-        :param in_features: the input feature dimension.
-        :param out_features: the output feature dimension.
-        :param activation: the activation function.
-        :param withbn: using batch normalization.
-        :param withloop: using self feature modeling.
-        :param bias: enable bias.
-        :param res: enable res connections.
-        """
-        super(GraphConvolutionBS, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.sigma = activation
-        self.res = res
-
-        # Parameter setting.
-        self.weight = Parameter(torch.FloatTensor(in_features, out_features))
-        # Is this the best practice or not?
-        if withloop:
-            self.self_weight = Parameter(torch.FloatTensor(in_features, out_features))
-        else:
-            self.register_parameter("self_weight", None)
-
-        if withbn:
-            self.bn = torch.nn.BatchNorm1d(out_features)
-        else:
-            self.register_parameter("bn", None)
-
-        if bias:
-            self.bias = Parameter(torch.FloatTensor(out_features))
-        else:
-            self.register_parameter('bias', None)
-
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        stdv = 1. / math.sqrt(self.weight.size(1))
-        self.weight.data.uniform_(-stdv, stdv)
-        if self.self_weight is not None:
-            stdv = 1. / math.sqrt(self.self_weight.size(1))
-            self.self_weight.data.uniform_(-stdv, stdv)
-        if self.bias is not None:
-            self.bias.data.uniform_(-stdv, stdv)
-
-    def forward(self, input, adj,idx=None):
-        output = torch.mm(input, self.weight)
-
-        print('out ', adj.size(), output.size())
-
-        output = torch.spmm(adj, output)
-
-        # Self-loop
-        if self.self_weight is not None:
-            output = output + torch.mm(input, self.self_weight)
-
-        if self.bias is not None:
-            output = output + self.bias
-        # BN
-        if self.bn is not None:
-            output = self.bn(output)
-        # Res
-        if self.res:
-            return self.sigma(output) + input
-        else:
-            return self.sigma(output)
-
-    def __repr__(self):
-        return self.__class__.__name__ + ' (' \
-               + str(self.in_features) + ' -> ' \
-               + str(self.out_features) + ')'
 
 
 
@@ -138,27 +62,33 @@ class GCN(nn.Module):
 
         self.dropout = config['dropout']
 
-        self.ingc = Dense(dim_features, config['embedding_dim'], activation)
+        self.ingc = Dense(dim_features, config['embedding_dim'], F.relu)
         self.midlayer = nn.ModuleList()
+        self.bnlayer = nn.ModuleList()
         for i in range(config['num_layers']):
-            gcb = GraphConvolutionBS(config['embedding_dim'] , config['embedding_dim'], activation, withbn, withloop)
+            gcb = DenseGCNConv(config['embedding_dim'] , config['embedding_dim'])
             self.midlayer.append(gcb)
+            bn = self.bn = torch.nn.BatchNorm1d(config['embedding_dim'])
+            self.bnlayer.append(bn)
 
-        self.outgc = GraphConvolutionBS(config['embedding_dim'], dim_target)
+        self.outgc = DenseGCNConv(config['embedding_dim'], dim_target)
 
     def forward(self, data):
 
         x, edge_index, batch = data.x, data.edge_index, data.batch
         adj = to_dense_adj(edge_index, batch=batch)
 
+        print(x.size())
         x_enc = self.ingc(x, adj)
+        print(x_enc.size())
 
         x = F.dropout(x_enc, self.dropout, training=self.training)
 
         for i in range(len(self.midlayer)):
 
             midgc = self.midlayer[i]
-            x = midgc(x, adj)
+            bn = self.bnlayer[i]
+            x = F.relu(bn(midgc(x, adj)))
             x = F.dropout(x, self.dropout, training=self.training)
 
         x = self.outgc(x)
