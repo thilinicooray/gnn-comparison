@@ -56,13 +56,13 @@ if __name__ == "__main__":
     print('\nInput Arguments :\n', config_file, args, '\n')
 
     for dataset_name in datasets:
-        learning_rate = config_file['learning_rate']
-        batch_size = config_file['batch_size']
-        num_epochs = config_file['num_epochs']
+        learning_rate = config_file['learning_rate'][0]
+        batch_size = config_file['batch_size'][0]
+        num_epochs = config_file['num_epochs'][0]
         #drop_out = config_file['drop_out']
         #seed = config_file['seed']
-        clipping = config_file['gradient_clipping']
-        sched_class = config_file['scheduler']
+        clipping = config_file['gradient_clipping'][0]
+        sched_class = config_file['scheduler'][0]
 
         dataset = dataset_classes[dataset_name]  # dataset_class()
 
@@ -75,10 +75,10 @@ if __name__ == "__main__":
 
         #todo: dense option
 
-        net = trainer.Trainer(model, losses[config_file['loss']], device=config_file['device'])
+        net = trainer.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
 
         optimizer = torch.optim.Adam(model.parameters(),
-                                lr=config_file['learning_rate'], weight_decay=config_file['l2'])
+                                lr=learning_rate, weight_decay=config_file['l2'][0])
 
         if sched_class is not None:
             scheduler = sched_class(optimizer)
