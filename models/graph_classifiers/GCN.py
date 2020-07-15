@@ -5,7 +5,7 @@ import torch
 from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
 from torch_geometric.utils import to_dense_adj, to_dense_batch
-from torch_geometric.nn import SAGEConv, global_mean_pool
+from torch_geometric.nn import SAGEConv,GraphConv, global_mean_pool
 
 class Dense(Module):
     """
@@ -62,42 +62,35 @@ class GCN(nn.Module):
 
         self.dropout = config['dropout']
 
-        self.ingc = SAGEConv(dim_features, config['embedding_dim'])
+        self.ingc = GraphConv(dim_features, config['embedding_dim'])
         self.inbn = torch.nn.BatchNorm1d(config['embedding_dim'])
         self.midlayer = nn.ModuleList()
-
-        self.bn1 = torch.nn.BatchNorm1d(config['embedding_dim'])
-        self.bn2 = torch.nn.BatchNorm1d(config['embedding_dim'])
-        self.bn3 = torch.nn.BatchNorm1d(config['embedding_dim'])
-
+        self.bns = nn.ModuleList()
 
         for i in range(config['num_layers']):
-            gcb = SAGEConv(config['embedding_dim'] , config['embedding_dim'])
+            gcb = GraphConv(config['embedding_dim'] , config['embedding_dim'])
             self.midlayer.append(gcb)
+            bn2 = torch.nn.BatchNorm1d(config['embedding_dim'])
+            self.bns.append(bn2)
 
 
-        self.outgc = SAGEConv(config['embedding_dim'], dim_target)
+        self.outgc = GraphConv(config['embedding_dim'], dim_target)
 
-    def bn(self, i, x):
-        batch_size, num_nodes, num_channels = x.size()
-
-        x = x.view(-1, num_channels)
-        x = getattr(self, 'bn{}'.format(i))(x)
-        x = x.view(batch_size, num_nodes, num_channels)
-        return x
 
     def forward(self, data):
 
         x, edge_index, batch = data.x, data.edge_index, data.batch
 
         x_enc = self.ingc(x, edge_index)
-        x_enc = F.relu(self.bn1(x_enc))
+        x_enc = F.relu(self.inbn(x_enc))
         x = F.dropout(x_enc, self.dropout, training=self.training)
 
         for i in range(len(self.midlayer)):
 
             midgc = self.midlayer[i]
-            x = F.relu(self.bn(i+2, midgc(x, edge_index)))
+            bn = self.bns[i]
+
+            x = F.relu(bn(midgc(x, edge_index)))
             x = F.dropout(x, self.dropout, training=self.training)
 
         x = self.outgc(x, edge_index)
