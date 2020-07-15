@@ -31,7 +31,6 @@ class DGCNN(nn.Module):
         self.convs = []
         for layer in range(self.num_layers):
             input_dim = dim_features if layer == 0 else self.embedding_dim
-            print(input_dim, self.embedding_dim)
             self.convs.append(DGCNNConv(input_dim, self.embedding_dim))
         self.total_latent_dim = self.num_layers * self.embedding_dim
 

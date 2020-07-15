@@ -59,7 +59,7 @@ if __name__ == "__main__":
         #initialize the model
         model = DGCNN(dim_features=dataset._dim_features, dim_target=dataset._dim_target,
                       config={'embedding_dim':config_file['embedding_dim'][0], 'num_layers':config_file['num_layers'][0],
-                              'k':config_file['k'][0], 'dataset_name': dataset_name})
+                              'k':config_file['k'][0], 'dataset_name': dataset_name, 'dense_dim':config_file['dense_dim'][0]})
 
 
 
