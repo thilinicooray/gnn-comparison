@@ -51,8 +51,8 @@ if __name__ == "__main__":
         num_epochs = config_file['num_epochs']
         #drop_out = config_file['drop_out']
         #seed = config_file['seed']
-        clipping = config_file['clipping']
-        sched_class = config_file['sched_class']
+        clipping = config_file['gradient_clipping']
+        sched_class = config_file['scheduler']
 
         dataset = dataset_classes[dataset_name]  # dataset_class()
 
