@@ -93,11 +93,9 @@ if __name__ == "__main__":
             begin_time = time.time()
             dataset_getter = DatasetGetter(fold)
 
-            train_loader, val_loader = dataset_getter.get_train_val(dataset, batch_size,
+            train_loader, test_loader = dataset_getter.get_train_val(dataset, batch_size,
                                                                     shuffle=True)
-            test_loader = dataset_getter.get_test(dataset, batch_size, shuffle=False)
-
-            print('length ', len(train_loader), len(val_loader), len(test_loader))
+            val_loader = dataset_getter.get_test(dataset, batch_size, shuffle=False)
 
             #obtain final results
             test_acc, best_epoch = \
