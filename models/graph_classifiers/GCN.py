@@ -4,7 +4,7 @@ import math
 import torch
 from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
-from torch_geometric.utils import to_dense_adj
+from torch_geometric.utils import to_dense_adj, to_dense_batch
 from torch_geometric.nn import DenseGCNConv
 
 class Dense(Module):
@@ -77,6 +77,7 @@ class GCN(nn.Module):
 
         x, edge_index, batch = data.x, data.edge_index, data.batch
         adj = to_dense_adj(edge_index, batch=batch)
+        x, mask = to_dense_batch(x, batch=batch)
 
         print(x.size())
         x_enc = self.ingc(x, adj)
