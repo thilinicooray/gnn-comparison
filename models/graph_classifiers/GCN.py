@@ -105,7 +105,6 @@ class GCN(nn.Module):
         x = self.outgc(x, adj)
 
         graph_emb = torch.mean(x,1)
-        print('graph embbd size ', graph_emb.size())
 
         return graph_emb
 
