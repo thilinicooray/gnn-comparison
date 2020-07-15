@@ -81,7 +81,7 @@ class Trainer:
         return acc_all / len(loader.dataset), loss_all / len(loader.dataset)
 
 
-    def train(self, train_loader, max_epochs=100, optimizer=torch.optim.Adam, scheduler=None, clipping=None,
+    def train(self, train_loader, fold_no, max_epochs=100, optimizer=torch.optim.Adam, scheduler=None, clipping=None,
               validation_loader=None, test_loader=None):
 
         time_per_epoch = []
@@ -109,10 +109,10 @@ class Trainer:
                 max_fold_acc = val_acc
                 max_fold_val_acc_idx = epoch-1
 
-            msg = f'Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} '
+            msg = f'Fold: {fold_no}, Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} '
             print(msg)
 
         test_acc_for_fold = fold_test_acc[max_fold_val_acc_idx]
-        print('Test accuracy: {:.4f} using Best Val Epoch: {}\n'.format(test_acc_for_fold, max_fold_val_acc_idx))
+        print('Test accuracy: {:.4f} using Best Val Epoch: {}\n'.format(test_acc_for_fold, max_fold_val_acc_idx+1))
 
-        return test_acc_for_fold
+        return test_acc_for_fold, max_fold_val_acc_idx+1

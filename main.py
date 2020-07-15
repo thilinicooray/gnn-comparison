@@ -88,6 +88,7 @@ if __name__ == "__main__":
 
 
         accs = []
+        best_val_epoch = []
         for fold in range(10): #10 fold cross validation
             begin_time = time.time()
             dataset_getter = DatasetGetter(fold)
@@ -97,14 +98,18 @@ if __name__ == "__main__":
             test_loader = dataset_getter.get_test(dataset, batch_size, shuffle=False)
 
             #obtain final results
-            test_acc = \
-                net.train(train_loader=train_loader, max_epochs=num_epochs,
+            test_acc, best_epoch = \
+                net.train(train_loader=train_loader, max_epochs=num_epochs,fold_no=fold,
                           optimizer=optimizer, scheduler=scheduler, clipping=clipping,
                           validation_loader=val_loader, test_loader=test_loader)
 
 
             accs.append(test_acc)
-            print(fold + ' fold  train+evaluation takes %.3f minutes\n'%((time.time()-begin_time)/60))
+            best_val_epoch.append(best_epoch)
+            print(str(fold) + ' fold  train+evaluation takes %.3f minutes\n'%((time.time()-begin_time)/60))
+
+        for idx in range(len(accs)):
+            print('Fold {} Test accuracy: {:.4f} using Best Val Epoch: {}\n'.format(idx+1, accs[idx], best_val_epoch[idx]))
 
         accs = np.array(accs)
         mean = np.mean(accs)*100
