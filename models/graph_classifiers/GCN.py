@@ -91,7 +91,7 @@ class GCN(nn.Module):
         x, edge_index, batch = data.x, data.edge_index, data.batch
 
         x_enc = self.ingc(x, edge_index)
-        x_enc = F.relu(self.bn(1,x_enc))
+        x_enc = F.relu(self.bn1(x_enc))
         x = F.dropout(x_enc, self.dropout, training=self.training)
 
         for i in range(len(self.midlayer)):
