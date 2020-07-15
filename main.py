@@ -9,7 +9,7 @@ from datasets import *
 import trainer
 from evaluation.dataset_getter import DatasetGetter
 from models.graph_classifiers.DGCNN import DGCNN
-from .utils import read_config_file
+from config import utils
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         'DD': DD,
     }
 
-    config_file = read_config_file(args.config_file)
+    config_file = utils.read_config_file(args.config_file)
 
     for dataset_name in datasets:
         learning_rate = config_file.learning_rate
