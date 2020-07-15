@@ -43,11 +43,13 @@ if __name__ == "__main__":
 
     config_file = utils.read_config_file(args.config_file)
 
+    print('input arguments :\n', config_file, args)
+
     for dataset_name in datasets:
         learning_rate = config_file['learning_rate']
         batch_size = config_file['batch_size']
         num_epochs = config_file['num_epochs']
-        drop_out = config_file['drop_out']
+        #drop_out = config_file['drop_out']
         #seed = config_file['seed']
         clipping = config_file['clipping']
         sched_class = config_file['sched_class']
