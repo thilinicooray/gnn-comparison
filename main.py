@@ -97,6 +97,8 @@ if __name__ == "__main__":
                                                                     shuffle=True)
             test_loader = dataset_getter.get_test(dataset, batch_size, shuffle=False)
 
+            print('length ', len(train_loader), len(val_loader), len(test_loader))
+
             #obtain final results
             test_acc, best_epoch = \
                 net.train(train_loader=train_loader, max_epochs=num_epochs,fold_no=fold,
