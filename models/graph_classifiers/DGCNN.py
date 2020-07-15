@@ -79,8 +79,6 @@ class DGCNN(nn.Module):
         # apply dense layer
         out_dense = self.dense_layer(conv1d_res)
 
-        print('output ', out_dense.size())
-
         return out_dense
 
 

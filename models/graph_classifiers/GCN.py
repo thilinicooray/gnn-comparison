@@ -65,12 +65,16 @@ class GCN(nn.Module):
         self.ingc = DenseGCNConv(dim_features, config['embedding_dim'])
         self.inbn = torch.nn.BatchNorm1d(config['embedding_dim'])
         self.midlayer = nn.ModuleList()
-        self.bnlayer = nn.ModuleList()
+
+        self.bn1 = torch.nn.BatchNorm1d(config['embedding_dim'])
+        self.bn2 = torch.nn.BatchNorm1d(config['embedding_dim'])
+        self.bn3 = torch.nn.BatchNorm1d(config['embedding_dim'])
+
+
         for i in range(config['num_layers']):
             gcb = DenseGCNConv(config['embedding_dim'] , config['embedding_dim'])
             self.midlayer.append(gcb)
-            bn = self.bn = torch.nn.BatchNorm1d(config['embedding_dim'])
-            self.bnlayer.append(bn)
+
 
         self.outgc = DenseGCNConv(config['embedding_dim'], dim_target)
 
