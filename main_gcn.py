@@ -67,21 +67,17 @@ if __name__ == "__main__":
         dataset_class = dataset_classes[dataset_name]  # dataset_class()
         dataset = dataset_class()
 
-        #initialize the model
-        model = GCN(dim_features=dataset._dim_features, dim_target=dataset._dim_target,
-                      config={'embedding_dim':config_file['embedding_dim'][0], 'num_layers':config_file['num_layers'][0],
-                              'dropout' : config_file['dropout'][0], 'dense_dim':config_file['dense_dim'][0]})
-
-
-
-        #todo: dense option
-
 
         accs = []
         best_val_epoch = []
         for fold in range(10): #10 fold cross validation
             begin_time = time.time()
             dataset_getter = DatasetGetter(fold)
+
+            #initialize the model
+            model = GCN(dim_features=dataset._dim_features, dim_target=dataset._dim_target,
+                        config={'embedding_dim':config_file['embedding_dim'][0], 'num_layers':config_file['num_layers'][0],
+                                'dropout' : config_file['dropout'][0], 'dense_dim':config_file['dense_dim'][0]})
 
             net = trainer.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
 
