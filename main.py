@@ -6,6 +6,8 @@ import torch
 import torch.nn.functional as F
 
 from datasets import *
+from models.modules import (BinaryClassificationLoss, MulticlassClassificationLoss,
+                            NN4GMulticlassClassificationLoss, DiffPoolMulticlassClassificationLoss)
 import trainer
 from evaluation.dataset_getter import DatasetGetter
 from models.graph_classifiers.DGCNN import DGCNN
@@ -41,9 +43,17 @@ if __name__ == "__main__":
         'DD': DD,
     }
 
+    losses = {
+        'BinaryClassificationLoss': BinaryClassificationLoss,
+        'MulticlassClassificationLoss': MulticlassClassificationLoss,
+        'NN4GMulticlassClassificationLoss': NN4GMulticlassClassificationLoss,
+        'DiffPoolMulticlassClassificationLoss': DiffPoolMulticlassClassificationLoss,
+
+    }
+
     config_file = utils.read_config_file(args.config_file)
 
-    print('Input Arguments :\n', config_file, args, '\n\n')
+    print('\nInput Arguments :\n', config_file, args, '\n')
 
     for dataset_name in datasets:
         learning_rate = config_file['learning_rate']
@@ -65,7 +75,7 @@ if __name__ == "__main__":
 
         #todo: dense option
 
-        net = trainer.Trainer(model, F.nll_loss(), device=config_file['device'])
+        net = trainer.Trainer(model, losses[config_file['loss']], device=config_file['device'])
 
         optimizer = torch.optim.Adam(model.parameters(),
                                 lr=config_file['learning_rate'], weight_decay=config_file['l2'])
