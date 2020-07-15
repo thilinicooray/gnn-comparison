@@ -92,17 +92,17 @@ class GCN(nn.Module):
         adj = to_dense_adj(edge_index, batch=batch)
         x, mask = to_dense_batch(x, batch=batch)
 
-        x_enc = self.ingc(x, adj)
+        x_enc = self.ingc(x, adj, mask)
         x_enc = F.relu(self.bn(1,x_enc))
         x = F.dropout(x_enc, self.dropout, training=self.training)
 
         for i in range(len(self.midlayer)):
 
             midgc = self.midlayer[i]
-            x = F.relu(self.bn(i+2, midgc(x, adj)))
+            x = F.relu(self.bn(i+2, midgc(x, adj, mask)))
             x = F.dropout(x, self.dropout, training=self.training)
 
-        x = self.outgc(x, adj)
+        x = self.outgc(x, adj, mask)
 
         graph_emb = torch.mean(x,1)
 
