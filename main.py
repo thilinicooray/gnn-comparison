@@ -93,9 +93,9 @@ if __name__ == "__main__":
             begin_time = time.time()
             dataset_getter = DatasetGetter(fold)
 
-            train_loader, test_loader = dataset_getter.get_train_val(dataset, batch_size,
+            train_loader, val_loader = dataset_getter.get_train_val(dataset, batch_size,
                                                                     shuffle=True)
-            val_loader = dataset_getter.get_test(dataset, batch_size, shuffle=False)
+            test_loader = dataset_getter.get_test(dataset, batch_size, shuffle=False)
 
             #obtain final results
             test_acc, best_epoch = \
@@ -112,8 +112,8 @@ if __name__ == "__main__":
             print('Fold {} Test accuracy: {:.4f} using Best Val Epoch: {}\n'.format(idx+1, accs[idx], best_val_epoch[idx]))
 
         accs = np.array(accs)
-        mean = np.mean(accs)*100
-        std = np.std(accs)*100
+        mean = np.mean(accs)
+        std = np.std(accs)
         print(dataset_name + ' dataset has the following results: ')
         print('Mean: {:.2f}'.format(mean))
         print('Std: {:.2f}'.format(std))
