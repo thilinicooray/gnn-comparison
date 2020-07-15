@@ -62,7 +62,8 @@ class GCN(nn.Module):
 
         self.dropout = config['dropout']
 
-        self.ingc = Dense(dim_features, config['embedding_dim'], F.relu)
+        self.ingc = DenseGCNConv(dim_features, config['embedding_dim'])
+        self.inbn = torch.nn.BatchNorm1d(config['embedding_dim'])
         self.midlayer = nn.ModuleList()
         self.bnlayer = nn.ModuleList()
         for i in range(config['num_layers']):
@@ -79,10 +80,8 @@ class GCN(nn.Module):
         adj = to_dense_adj(edge_index, batch=batch)
         x, mask = to_dense_batch(x, batch=batch)
 
-        print(x.size())
         x_enc = self.ingc(x, adj)
-        print(x_enc.size())
-
+        x_enc = F.relu(self.inbn(x_enc))
         x = F.dropout(x_enc, self.dropout, training=self.training)
 
         for i in range(len(self.midlayer)):
