@@ -109,10 +109,10 @@ class Trainer:
                 max_fold_acc = val_acc
                 max_fold_val_acc_idx = epoch-1
 
-            msg = f'Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, VL loss: {val_loss} VL acc: {val_acc} '
+            msg = f'Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} '
             print(msg)
 
         test_acc_for_fold = fold_test_acc[max_fold_val_acc_idx]
-        print('Test_accuracy: {:.4f} Best Epoch: {}\n'.format(test_acc_for_fold, max_fold_val_acc_idx))
+        print('Test accuracy: {:.4f} using Best Val Epoch: {}\n'.format(test_acc_for_fold, max_fold_val_acc_idx))
 
         return test_acc_for_fold

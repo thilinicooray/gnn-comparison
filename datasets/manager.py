@@ -207,7 +207,7 @@ class GraphDatasetManager:
         if len(val_data) == 0:
             val_loader = None
         else:
-            val_loader = self._get_loader(val_data, batch_size, shuffle)
+            val_loader = self._get_loader(val_data, batch_size, False)
 
         return train_loader, val_loader
 
