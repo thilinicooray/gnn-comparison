@@ -39,8 +39,13 @@ class Trainer:
 
             loss.backward()
 
-            loss_all += loss.item()
-            acc_all += acc.item()
+            try:
+                num_graphs = data.num_graphs
+            except TypeError:
+                num_graphs = data.adj.size(0)
+
+            loss_all += loss.item() * num_graphs
+            acc_all += acc.item() * num_graphs
 
             if clipping is not None:  # Clip gradient before updating weights
                 torch.nn.utils.clip_grad_norm_(model.parameters(), clipping)
@@ -65,8 +70,13 @@ class Trainer:
 
             loss, acc = self.loss_fun(data.y, *output)
 
-            loss_all += loss.item()
-            acc_all += acc.item()
+            try:
+                num_graphs = data.num_graphs
+            except TypeError:
+                num_graphs = data.adj.size(0)
+
+            loss_all += loss.item() * num_graphs
+            acc_all += acc.item() * num_graphs
 
         return acc_all / len(loader.dataset), loss_all / len(loader.dataset)
 
