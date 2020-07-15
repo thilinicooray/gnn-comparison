@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     config_file = utils.read_config_file(args.config_file)
 
-    print('input arguments :\n', config_file, args)
+    print('Input Arguments :\n', config_file, args, '\n\n')
 
     for dataset_name in datasets:
         learning_rate = config_file['learning_rate']
@@ -57,7 +57,7 @@ if __name__ == "__main__":
         dataset = dataset_classes[dataset_name]  # dataset_class()
 
         #initialize the model
-        model = DGCNN(dim_features=dataset.dim_features, dim_target=dataset.dim_target,
+        model = DGCNN(dim_features=dataset._dim_features, dim_target=dataset._dim_target,
                       config={'embedding_dim':config_file['embedding_dim'][0], 'num_layers':config_file['num_layers'][0],
                               'k':config_file['k'][0], 'dataset_name': dataset_name})
 
