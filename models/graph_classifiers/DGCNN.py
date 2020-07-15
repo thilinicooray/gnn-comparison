@@ -24,7 +24,7 @@ class DGCNN(nn.Module):
                    'COLLAB': { '0.6': 61, '0.9': 130 },
                    }
 
-        self.k = self.ks[config.dataset.name][str(config['k'])]
+        self.k = self.ks[config['dataset_name']][str(config['k'])]
         self.embedding_dim = config['embedding_dim']
         self.num_layers = config['num_layers']
 

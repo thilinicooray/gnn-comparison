@@ -1,0 +1,28 @@
+model:
+  - DGCNN
+device:
+  - cuda
+batch_size:
+  - 50
+dense_dim:
+  - 128
+k:
+  - 0.6
+learning_rate:
+  - 0.00001
+num_epochs:
+  - 100
+optimizer:
+  - Adam
+scheduler:
+  - null
+loss:
+  - MulticlassClassificationLoss
+gradient_clipping:
+  - null
+l2:
+  - 0.
+embedding_dim:
+  - 32
+num_layers:
+  - 4
