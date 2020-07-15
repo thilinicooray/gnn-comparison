@@ -5,7 +5,7 @@ import torch
 from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
 from torch_geometric.utils import to_dense_adj, to_dense_batch
-from torch_geometric.nn import DenseGCNConv
+from torch_geometric.nn import SAGEConv, global_mean_pool
 
 class Dense(Module):
     """
@@ -62,7 +62,7 @@ class GCN(nn.Module):
 
         self.dropout = config['dropout']
 
-        self.ingc = DenseGCNConv(dim_features, config['embedding_dim'])
+        self.ingc = SAGEConv(dim_features, config['embedding_dim'])
         self.inbn = torch.nn.BatchNorm1d(config['embedding_dim'])
         self.midlayer = nn.ModuleList()
 
@@ -72,11 +72,11 @@ class GCN(nn.Module):
 
 
         for i in range(config['num_layers']):
-            gcb = DenseGCNConv(config['embedding_dim'] , config['embedding_dim'])
+            gcb = SAGEConv(config['embedding_dim'] , config['embedding_dim'])
             self.midlayer.append(gcb)
 
 
-        self.outgc = DenseGCNConv(config['embedding_dim'], dim_target)
+        self.outgc = SAGEConv(config['embedding_dim'], dim_target)
 
     def bn(self, i, x):
         batch_size, num_nodes, num_channels = x.size()
@@ -89,22 +89,20 @@ class GCN(nn.Module):
     def forward(self, data):
 
         x, edge_index, batch = data.x, data.edge_index, data.batch
-        adj = to_dense_adj(edge_index, batch=batch)
-        x, mask = to_dense_batch(x, batch=batch)
 
-        x_enc = self.ingc(x, adj, mask)
+        x_enc = self.ingc(x, edge_index)
         x_enc = F.relu(self.bn(1,x_enc))
         x = F.dropout(x_enc, self.dropout, training=self.training)
 
         for i in range(len(self.midlayer)):
 
             midgc = self.midlayer[i]
-            x = F.relu(self.bn(i+2, midgc(x, adj, mask)))
+            x = F.relu(self.bn(i+2, midgc(x, edge_index)))
             x = F.dropout(x, self.dropout, training=self.training)
 
-        x = self.outgc(x, adj, mask)
+        x = self.outgc(x, edge_index)
 
-        graph_emb = torch.mean(x,1)
+        graph_emb = global_mean_pool(x, batch)
 
         return graph_emb
 
