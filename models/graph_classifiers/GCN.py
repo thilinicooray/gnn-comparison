@@ -98,6 +98,8 @@ class GraphConvolutionBS(Module):
     def forward(self, input, adj,idx=None):
         output = torch.mm(input, self.weight)
 
+        print('out ', adj.size(), output.size())
+
         output = torch.spmm(adj, output)
 
         # Self-loop
