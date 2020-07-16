@@ -193,8 +193,6 @@ class GCN(nn.Module):
 
         loss_val = self.loss(pos_z, neg_z, self.sigm(summary))
 
-        print('loss' , loss_val)
-
         return graph_emb, loss_val
 
     def loss(self, pos_z, neg_z, summary):
@@ -206,8 +204,6 @@ class GCN(nn.Module):
             pos_sim + EPS).mean()
         neg_loss = -torch.log(
             1 - neg_sim + EPS).mean()
-
-        print(pos_loss, neg_loss)
 
         return pos_loss + neg_loss
 
