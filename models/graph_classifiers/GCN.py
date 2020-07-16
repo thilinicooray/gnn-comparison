@@ -125,27 +125,26 @@ class Discriminator(nn.Module):
             if m.bias is not None:
                 m.bias.data.fill_(0.0)
 
-    def forward(self, c, h_pl, h_mi, s_bias1=None, s_bias2=None):
+    def forward(self, c, h_pl, h_mi):
         c_x = torch.unsqueeze(c, 1)
-
-        print(c.size(),h_pl.size(), h_mi.size())
 
         c_x = c_x.expand_as(h_pl)
 
-        batch_n, node_n, feat_n = h_pl.size()
+        batch_p, node_p, feat_p = h_pl.size()
 
-        pos = h_pl.contiguous().view(batch_n * node_n, -1)
-        sum = c_x.contiguous().view(batch_n * node_n, -1)
+        pos = h_pl.contiguous().view(batch_p * node_p, -1)
+        sum = c_x.contiguous().view(batch_p * node_p, -1)
 
-        a = self.f_k(pos, sum)
+        sc_1 = self.f_k(pos, sum)
 
-        sc_1 = torch.squeeze(self.f_k(h_pl, c_x), 2)
-        sc_2 = torch.squeeze(self.f_k(h_mi, c_x), 2)
+        c_n = c_x.expand_as(h_mi)
 
-        if s_bias1 is not None:
-            sc_1 += s_bias1
-        if s_bias2 is not None:
-            sc_2 += s_bias2
+        batch_n, node_n, feat_n = h_mi.size()
+
+        neg = h_mi.contiguous().view(batch_n * node_n, -1)
+        sum_n = c_n.contiguous().view(batch_n * node_n, -1)
+
+        sc_2 = self.f_k(neg, sum_n)
 
         return sc_1, sc_2
 
