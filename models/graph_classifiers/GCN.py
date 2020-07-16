@@ -202,12 +202,12 @@ class GCN(nn.Module):
 
         pos_sim, neg_sim = self.disc(summary, pos_z, neg_z)
 
-        print (torch.log(pos_sim), torch.log(neg_sim))
-
         pos_loss = -torch.log(
-            pos_sim + EPS).mean()
+            pos_sim + EPS)
         neg_loss = -torch.log(
-            1 - neg_sim + EPS).mean()
+            1 - neg_sim + EPS)
+
+        print(pos_loss, neg_loss)
 
         return pos_loss + neg_loss
 
