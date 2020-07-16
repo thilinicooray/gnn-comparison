@@ -84,7 +84,7 @@ class Trainer:
         return acc_all / len(loader.dataset), loss_all / len(loader.dataset)
 
 
-    def train(self, train_loader, fold_no, max_epochs=100, optimizer=torch.optim.Adam, scheduler=None, clipping=None,
+    def train(self, train_loader, fold_no, run_no, max_epochs=100, optimizer=torch.optim.Adam, scheduler=None, clipping=None,
               validation_loader=None, test_loader=None):
 
         time_per_epoch = []
@@ -92,39 +92,38 @@ class Trainer:
         test_scores = []
 
         # Mitigate bad random initializations
-        for i in range(5):
-            max_fold_val_acc_idx = 0
-            max_fold_acc = 0
-            fold_test_acc = []
+        max_fold_val_acc_idx = 0
+        max_fold_acc = 0
+        fold_test_acc = []
 
-            for epoch in range(1, max_epochs+1):
+        for epoch in range(1, max_epochs+1):
 
-                start = time.time()
-                train_acc, train_loss = self._train(train_loader, optimizer, clipping)
-                end = time.time() - start
-                time_per_epoch.append(end)
+            start = time.time()
+            train_acc, train_loss = self._train(train_loader, optimizer, clipping)
+            end = time.time() - start
+            time_per_epoch.append(end)
 
-                if scheduler is not None:
-                    scheduler.step(epoch)
+            if scheduler is not None:
+                scheduler.step(epoch)
 
-                test_acc, test_loss = self._eval(test_loader)
+            test_acc, test_loss = self._eval(test_loader)
 
-                val_acc, val_loss = self._eval(validation_loader)
+            val_acc, val_loss = self._eval(validation_loader)
 
 
-                fold_test_acc.append(test_acc)
-                if max_fold_acc < val_acc: #model selection based on val acc
-                    max_fold_acc = val_acc
-                    max_fold_val_acc_idx = epoch-1
+            fold_test_acc.append(test_acc)
+            if max_fold_acc < val_acc: #model selection based on val acc
+                max_fold_acc = val_acc
+                max_fold_val_acc_idx = epoch-1
 
-                msg = f'Fold: {fold_no}, run {i}, Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} Test acc: {test_acc}'
-                print(msg)
+            msg = f'Fold: {fold_no}, run {run_no}, Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} Test acc: {test_acc}'
+            print(msg)
 
-            test_acc_for_fold = fold_test_acc[max_fold_val_acc_idx]
-            print('Test accuracy: {:.4f} using Best Val Epoch: {}\n'.format( test_acc_for_fold, max_fold_val_acc_idx+1))
+        test_acc_for_fold = fold_test_acc[max_fold_val_acc_idx]
+        print('Test accuracy: {:.4f} using Best Val Epoch: {}\n'.format( test_acc_for_fold, max_fold_val_acc_idx+1))
 
-            test_scores.append(test_acc_for_fold)
+        #test_scores.append(test_acc_for_fold)
 
         #test_score = sum(test_scores) / 3
 
-        return test_scores[-1], 0
+        return test_acc_for_fold, 0
