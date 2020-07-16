@@ -40,7 +40,7 @@ class Trainer:
 
             loss, acc = self.loss_fun(data.y, *output)
 
-            final_loss = loss + 0.1 * dig_loss
+            final_loss = loss + dig_loss
 
             final_loss.backward()
 
