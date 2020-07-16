@@ -29,7 +29,7 @@ class Trainer:
         acc_all = 0
         for data, neg_data in train_loader:
 
-            print(data, neg_data)
+            print(data, 'ANDDDDD',  neg_data)
 
             data = data.to(self.device)
             neg_data = neg_data.to(self.device)
