@@ -4,7 +4,7 @@ import math
 import torch
 from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
-from torch_geometric.utils import add_self_loops
+from torch_geometric.utils import add_self_loops, to_dense_batch, to_dense_adj
 from torch_geometric.nn import SAGEConv,GraphConv, global_mean_pool
 
 from torch.nn import BatchNorm1d
@@ -72,7 +72,7 @@ class InnerProductDecoder(nn.Module):
 
     def forward(self, z):
         z = F.dropout(z, self.dropout, training=self.training)
-        adj = self.act(torch.mm(z, z.t()))
+        adj = self.act(torch.bmm(z, z.t()))
         return adj
 
 class GCN(nn.Module):
@@ -144,9 +144,12 @@ class GCN(nn.Module):
         #GAE
         mu, logvar = self.encode(x, edge_index)
         z = self.reparameterize(mu, logvar)
-        decoded = self.dc(z)
+        rep, mask = to_dense_batch(z, batch=batch)
+        adj = to_dense_adj(edge_index, batch=batch)
 
-        vae_loss = loss_function(mu, logvar, decoded, edge_index)
+        decoded = self.dc(rep)
+
+        vae_loss = loss_function(mu, logvar, decoded, adj)
 
         #graph
         graph_emb = global_mean_pool(tot, batch)
