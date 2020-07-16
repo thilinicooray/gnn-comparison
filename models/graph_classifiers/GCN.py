@@ -11,7 +11,7 @@ from torch.nn import BatchNorm1d
 from torch.nn import Sequential, Linear, ReLU
 from torch_geometric.nn import GINConv, global_add_pool, global_mean_pool
 
-def loss_function(mu, logvar, n_nodes, decoded, real):
+def loss_function(mu, logvar, decoded, real, n_nodes = 8):
 
     print('values ', mu.size(), logvar.size(), decoded.size(), real.size())
 
