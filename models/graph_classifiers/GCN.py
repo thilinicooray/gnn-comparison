@@ -195,12 +195,12 @@ class GCN(nn.Module):
 
         return graph_emb, loss_val
 
-    def loss(self, pos_z, neg_z, mask_, mask_n,summary):
+    def loss(self, pos_z, neg_z, mask, mask_n,summary):
         r"""Computes the mutal information maximization objective."""
 
         pos_sim, neg_sim = self.disc(summary, pos_z, neg_z)
 
-        #print(pos_z.size(), pos_sim.size())
+        print(pos_z.size(), pos_sim.size(), mask.size(), neg_z.size(), neg_sim.size(), mask_n.size())
 
         pos_loss = -torch.log(
             pos_sim + EPS).mean()
