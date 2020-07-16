@@ -114,7 +114,7 @@ class Trainer:
                     max_fold_acc = val_acc
                     max_fold_val_acc_idx = epoch-1
 
-                msg = f'Fold: {fold_no}, Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} '
+                msg = f'Fold: {fold_no}, Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} Test acc: {test_acc}'
                 print(msg)
 
             test_acc_for_fold = fold_test_acc[max_fold_val_acc_idx]
