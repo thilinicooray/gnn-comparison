@@ -36,7 +36,7 @@ class Dense(Module):
         if self.bias is not None:
             self.bias.data.uniform_(-stdv, stdv)
 
-    def forward(self, input, adj):
+    def forward(self, input):
         output = torch.mm(input, self.weight)
         if self.bias is not None:
             output = output + self.bias
