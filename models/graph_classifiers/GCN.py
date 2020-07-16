@@ -78,7 +78,7 @@ class GCN(nn.Module):
             self.bns.append(bn2)
 
 
-        self.outgc = nn.Linear(config['embedding_dim'], dim_target)
+        self.outgc = Dense(config['embedding_dim'], dim_target, activation=F.relu)
         self.outbn = torch.nn.BatchNorm1d(dim_target)
 
 
