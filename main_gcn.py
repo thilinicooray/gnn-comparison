@@ -94,18 +94,19 @@ if __name__ == "__main__":
             test_loader = dataset_getter.get_test(dataset, batch_size, shuffle=False)
 
             #obtain final results
-            test_acc, best_epoch = \
+            test_acc = \
                 net.train(train_loader=train_loader, max_epochs=num_epochs,fold_no=fold+1,
                           optimizer=optimizer, scheduler=scheduler, clipping=clipping,
                           validation_loader=val_loader, test_loader=test_loader)
 
 
             accs.append(test_acc)
-            best_val_epoch.append(best_epoch)
+            #best_val_epoch.append(best_epoch)
             print('No '+ str(fold+1) + ' fold  train+evaluation takes %.3f minutes\n'%((time.time()-begin_time)/60))
 
         for idx in range(len(accs)):
-            print('Fold {} Test accuracy: {:.4f} using Best Validation Set Performing Epoch: {}\n'.format(idx+1, accs[idx], best_val_epoch[idx]))
+            #print('Fold {} Test accuracy: {:.4f} using Best Validation Set Performing Epoch: {}\n'.format(idx+1, accs[idx], best_val_epoch[idx]))
+            print('Fold {} Test accuracy: {:.4f} using Best Validation Set Performing Epoch\n'.format(idx+1, accs[idx]))
 
         accs = np.array(accs)
         mean = np.mean(accs)

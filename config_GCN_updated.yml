@@ -8,7 +8,7 @@ dense_dim:
   - 128
 
 learning_rate:
-  - 0.0001
+  - 0.01
 num_epochs:
   - 200
 optimizer:
@@ -22,8 +22,8 @@ gradient_clipping:
 l2:
   - 0.
 embedding_dim:
-  - 64
+  - 32
 num_layers:
-  - 2
+  - 4
 dropout:
   - 0.5
