@@ -72,7 +72,7 @@ class InnerProductDecoder(nn.Module):
 
     def forward(self, z):
         z = F.dropout(z, self.dropout, training=self.training)
-        adj = self.act(torch.bmm(z, z.t()))
+        adj = self.act(torch.bmm(z, torch.transpose(z, 1,2)))
         return adj
 
 class GCN(nn.Module):
@@ -144,8 +144,12 @@ class GCN(nn.Module):
         #GAE
         mu, logvar = self.encode(x, edge_index)
         z = self.reparameterize(mu, logvar)
+
+        print('before ', z.size(), edge_index.size())
+
         rep, mask = to_dense_batch(z, batch=batch)
         adj = to_dense_adj(edge_index, batch=batch)
+        print('after ', z.size(), adj.size())
 
         decoded = self.dc(rep)
 
