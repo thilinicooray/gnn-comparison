@@ -7,6 +7,10 @@ from torch.nn.modules.module import Module
 from torch_geometric.utils import to_dense_adj, to_dense_batch
 from torch_geometric.nn import SAGEConv,GraphConv, global_mean_pool
 
+from torch.nn import BatchNorm1d
+from torch.nn import Sequential, Linear, ReLU
+from torch_geometric.nn import GINConv, global_add_pool, global_mean_pool
+
 class Dense(Module):
     """
     Simple Dense layer, Do not consider adj.
@@ -48,7 +52,7 @@ class Dense(Module):
 
 
 
-class GCN(nn.Module):
+class GCN1(nn.Module):
 
     def __init__(self,
                  dim_features,
@@ -58,7 +62,7 @@ class GCN(nn.Module):
                  withbn=True,
                  withloop=True):
 
-        super(GCN, self).__init__()
+        super(GCN1, self).__init__()
 
         self.dropout = config['dropout']
 
@@ -104,4 +108,59 @@ class GCN(nn.Module):
         graph_emb = self.outgc(graph_emb)
 
         return graph_emb
+
+class GCN(nn.Module):
+
+    def __init__(self,
+                 dim_features,
+                 dim_target,
+                 config,
+                 activation=lambda x: x,
+                 withbn=True,
+                 withloop=True):
+
+        super(GCN, self).__init__()
+
+        self.config = config
+        self.dropout = config['dropout']
+        self.embedding_dim = config['embedding_dim']
+        self.no_layers = config['num_layers']
+        self.first_h = []
+        self.nns = []
+        self.convs = []
+        self.linears = []
+
+        self.pooling = global_mean_pool
+
+        for i in range(self.no_layers):
+
+            if i == 0:
+                self.first_h = Sequential(Linear(dim_features, self.embedding_dim), BatchNorm1d(self.embedding_dim), ReLU(),
+                                          Linear(self.embedding_dim, self.embedding_dim), BatchNorm1d(self.embedding_dim), ReLU())
+                self.linears.append(Linear(self.embedding_dim, dim_target))
+            else:
+
+                self.convs.append(GraphConv(self.embedding_dim , self.embedding_dim))
+
+                self.linears.append(Linear(self.embedding_dim, dim_target))
+
+        self.nns = torch.nn.ModuleList(self.nns)
+        self.convs = torch.nn.ModuleList(self.convs)
+        self.linears = torch.nn.ModuleList(self.linears)  # has got one more for initial input
+
+    def forward(self, data):
+        x, edge_index, batch = data.x, data.edge_index, data.batch
+
+        out = 0
+
+        for layer in range(self.no_layers):
+            if layer == 0:
+                x = self.first_h(x)
+                out += F.dropout(self.pooling(self.linears[layer](x), batch), p=self.dropout)
+            else:
+                # Layer l ("convolution" layer)
+                x = self.convs[layer-1](x, edge_index)
+                out += F.dropout(self.linears[layer](self.pooling(x, batch)), p=self.dropout, training=self.training)
+
+        return out
 
