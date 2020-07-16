@@ -146,7 +146,7 @@ class Discriminator(nn.Module):
 
         sc_2 = self.f_k(neg, sum_n)
 
-        return sc_1, sc_2
+        return torch.sigmoid(sc_1), torch.sigmoid(sc_2)
 
 
 class GCN(nn.Module):
