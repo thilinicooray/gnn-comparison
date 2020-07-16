@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from datasets import *
 from models.modules import (BinaryClassificationLoss, MulticlassClassificationLoss,
                             NN4GMulticlassClassificationLoss, DiffPoolMulticlassClassificationLoss)
-import trainer
+import trainer_base
 from evaluation.dataset_getter import DatasetGetter
 from models.graph_classifiers.DGCNN import DGCNN
 from config import utils
@@ -24,6 +24,11 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
+    args = get_args()
+    seed = 42
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
     if args.dataset_name != 'none':
         datasets = [args.dataset_name]
@@ -84,7 +89,7 @@ if __name__ == "__main__":
 
             #todo: dense option
 
-            net = trainer.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
+            net = trainer_base.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
 
             optimizer = torch.optim.Adam(model.parameters(),
                                          lr=learning_rate, weight_decay=config_file['l2'][0])
