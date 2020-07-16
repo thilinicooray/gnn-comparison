@@ -2,6 +2,7 @@ import time
 from datetime import timedelta
 import torch
 from torch import optim
+import numpy as np
 
 
 def format_time(avg_time):
@@ -117,7 +118,9 @@ class Trainer:
             msg = f'Fold: {fold_no}, Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} Test acc: {test_acc}'
             print(msg)
 
-        test_acc_for_fold = fold_test_acc[max_fold_val_acc_idx]
+        total_acc = np.array(fold_test_acc)
+        avg_acc = np.sum(total_acc, 0) / len(fold_test_acc)
+        test_acc_for_fold = avg_acc
         print('Test accuracy: {:.4f} using Best Val Epoch: {}\n'.format( test_acc_for_fold, max_fold_val_acc_idx+1))
 
         #test_scores.append(test_acc_for_fold)
