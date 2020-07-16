@@ -99,7 +99,6 @@ class Trainer:
 
             start = time.time()
             train_acc, train_loss = self._train(train_loader, optimizer, clipping)
-            train_acc1, train_loss1 = self._train(validation_loader, optimizer, clipping)
             end = time.time() - start
             time_per_epoch.append(end)
 
@@ -108,21 +107,18 @@ class Trainer:
 
             test_acc, test_loss = self._eval(test_loader)
 
-            #val_acc, val_loss = self._eval(validation_loader)
-            val_acc, val_loss = 0,0
+            val_acc, val_loss = self._eval(validation_loader)
 
 
-            '''fold_test_acc.append(test_acc)
+            fold_test_acc.append(test_acc)
             if max_fold_acc < val_acc: #model selection based on val acc
                 max_fold_acc = val_acc
-                max_fold_val_acc_idx = epoch-1'''
+                max_fold_val_acc_idx = epoch-1
 
             msg = f'Fold: {fold_no}, Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} Test acc: {test_acc}'
             print(msg)
 
-        total_acc = np.array(fold_test_acc)
-        avg_acc = np.sum(total_acc, 0) / len(fold_test_acc)
-        test_acc_for_fold = avg_acc
+        test_acc_for_fold = fold_test_acc[max_fold_val_acc_idx]
         print('Test accuracy: {:.4f} using Best Val Epoch: {}\n'.format( test_acc_for_fold, max_fold_val_acc_idx+1))
 
         #test_scores.append(test_acc_for_fold)

@@ -11,6 +11,18 @@ from torch.nn import BatchNorm1d
 from torch.nn import Sequential, Linear, ReLU
 from torch_geometric.nn import GINConv, global_add_pool, global_mean_pool
 
+def loss_function(mu, logvar, n_nodes, decoded, real):
+
+    print('values ', mu.size(), logvar.size(), decoded.size(), real.size())
+
+    # see Appendix B from VAE paper:
+    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+    # https://arxiv.org/abs/1312.6114
+    # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+    KLD = -0.5 / n_nodes * torch.mean(torch.sum(
+        1 + 2 * logvar - mu.pow(2) - logvar.exp().pow(2), 1))
+    return KLD
+
 class Dense(Module):
     """
     Simple Dense layer, Do not consider adj.
@@ -50,7 +62,18 @@ class Dense(Module):
 
 
 
+class InnerProductDecoder(nn.Module):
+    """Decoder for using inner product for prediction."""
 
+    def __init__(self, dropout, act=torch.sigmoid):
+        super(InnerProductDecoder, self).__init__()
+        self.dropout = dropout
+        self.act = act
+
+    def forward(self, z):
+        z = F.dropout(z, self.dropout, training=self.training)
+        adj = self.act(torch.mm(z, z.t()))
+        return adj
 
 class GCN(nn.Module):
 
@@ -81,6 +104,23 @@ class GCN(nn.Module):
         self.outgc = Dense(config['embedding_dim'], dim_target, activation=F.relu)
         self.outbn = torch.nn.BatchNorm1d(dim_target)
 
+        #node VAE
+        self.mu_calc = GraphConv(config['embedding_dim'] , config['embedding_dim'])
+        self.var_calc = GraphConv(config['embedding_dim'] , config['embedding_dim'])
+        self.dc = InnerProductDecoder(0.0, act=lambda x: x)
+
+    def reparameterize(self, mu, logvar):
+        if self.training:
+            std = torch.exp(logvar)
+            eps = torch.randn_like(std)
+            return eps.mul(std).add_(mu)
+        else:
+            return mu
+
+    def encode(self, x, adj):
+        hidden1 = x
+        return F.relu(self.mu_calc(hidden1, adj)), F.relu(self.var_calc(hidden1, adj))
+
 
     def forward(self, data):
 
@@ -101,8 +141,14 @@ class GCN(nn.Module):
 
             tot = tot + x
 
-        #x = F.relu(self.outbn(self.outgc(tot, edge_index)))
+        #GAE
+        mu, logvar = self.encode(x, edge_index)
+        z = self.reparameterize(mu, logvar)
+        decoded = self.dc(z)
 
+        vae_loss = loss_function(mu, logvar, decoded, edge_index)
+
+        #graph
         graph_emb = global_mean_pool(tot, batch)
 
         graph_emb = self.outgc(graph_emb)
