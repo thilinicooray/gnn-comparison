@@ -193,21 +193,9 @@ class GCN(nn.Module):
 
         loss_val = self.loss(pos_z, neg_z, self.sigm(summary))
 
+        print('loss' , loss_val)
+
         return graph_emb, loss_val
-
-    def discriminate(self, z, summary, sigmoid=True):
-        r"""Given the patch-summary pair :obj:`z` and :obj:`summary`, computes
-        the probability scores assigned to this patch-summary pair.
-
-        Args:
-            z (Tensor): The latent space.
-            sigmoid (bool, optional): If set to :obj:`False`, does not apply
-                the logistic sigmoid function to the output.
-                (default: :obj:`True`)
-        """
-        value = torch.matmul(z, self.weight(summary))
-        return torch.sigmoid(value) if sigmoid else value
-
 
     def loss(self, pos_z, neg_z, summary):
         r"""Computes the mutal information maximization objective."""
