@@ -130,7 +130,7 @@ class GCN(nn.Module):
 
         self.outgc = Dense(config['embedding_dim'], dim_target, activation=F.relu)
         self.outbn = torch.nn.BatchNorm1d(dim_target)
-        self.weight = Parameter(torch.Tensor(config['embedding_dim'], config['embedding_dim']))
+        self.weight = nn.Linear(config['embedding_dim'], config['embedding_dim'])
 
 
 
@@ -160,7 +160,7 @@ class GCN(nn.Module):
                 the logistic sigmoid function to the output.
                 (default: :obj:`True`)
         """
-        value = torch.matmul(z, torch.matmul(self.weight, summary))
+        value = torch.matmul(z, self.weight(summary))
         return torch.sigmoid(value) if sigmoid else value
 
 
