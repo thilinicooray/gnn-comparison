@@ -146,7 +146,7 @@ class Discriminator(nn.Module):
 
         sc_2 = self.f_k(neg, sum_n)
 
-        return F.relu(sc_1), F.relu(sc_2)
+        return torch.sigmoid(sc_1), torch.sigmoid(sc_2)
 
 
 class GCN(nn.Module):
@@ -188,10 +188,13 @@ class GCN(nn.Module):
 
         graph_emb = self.outgc(summary)
 
-        pos_z, mask_ = to_dense_batch(pos_z, batch=batch)
+        pos_z, mask = to_dense_batch(pos_z, batch=batch)
         neg_z, mask_n = to_dense_batch(neg_z, batch=batch_n)
 
-        loss_val = self.loss(pos_z, neg_z, mask_, mask_n, self.sigm(summary))
+        mask = mask.contiguous().view(pos_z.size(0) * pos_z.size(1), -1)
+        mask_n = mask_n.contiguous().view(neg_z.size(0) * neg_z.size(1), -1)
+
+        loss_val = self.loss(pos_z, neg_z, mask, mask_n, self.sigm(summary))
 
         return graph_emb, loss_val
 
@@ -200,12 +203,13 @@ class GCN(nn.Module):
 
         pos_sim, neg_sim = self.disc(summary, pos_z, neg_z)
 
-        print(pos_z.size(), pos_sim.size(), mask.size(), neg_z.size(), neg_sim.size(), mask_n.size())
 
         pos_loss = -torch.log(
-            pos_sim + EPS).mean()
+            pos_sim + EPS)
+        pos_loss = (pos_loss*mask).mean()
         neg_loss = -torch.log(
-            1 - neg_sim + EPS).mean()
+            1 - neg_sim + EPS)
+        neg_loss = (neg_loss*mask_n).mean()
 
         return pos_loss + neg_loss
 
