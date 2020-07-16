@@ -132,7 +132,12 @@ class Discriminator(nn.Module):
 
         c_x = c_x.expand_as(h_pl)
 
-        a = self.f_k(h_pl, c_x)
+        batch_n, node_n, feat_n = h_pl.size()
+
+        pos = h_pl.contiguous().view(batch_n * node_n, -1)
+        sum = c_x.contiguous().view(batch_n * node_n, -1)
+
+        a = self.f_k(pos, sum)
 
         sc_1 = torch.squeeze(self.f_k(h_pl, c_x), 2)
         sc_2 = torch.squeeze(self.f_k(h_mi, c_x), 2)
