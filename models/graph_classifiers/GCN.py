@@ -139,8 +139,9 @@ class GCN(nn.Module):
                                           Linear(self.embedding_dim, self.embedding_dim), BatchNorm1d(self.embedding_dim), ReLU())
                 self.linears.append(Linear(self.embedding_dim, dim_target))
             else:
-
-                self.convs.append(GraphConv(self.embedding_dim , self.embedding_dim))
+                self.nns.append(Sequential(Linear(self.embedding_dim, self.embedding_dim), BatchNorm1d(self.embedding_dim), ReLU(),
+                                           Linear(self.embedding_dim, self.embedding_dim), BatchNorm1d(self.embedding_dim), ReLU()))
+                self.convs.append(GINConv(self.nns[-1]))
 
                 self.linears.append(Linear(self.embedding_dim, dim_target))
 
