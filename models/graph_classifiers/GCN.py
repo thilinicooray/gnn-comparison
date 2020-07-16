@@ -172,6 +172,7 @@ class GCN(nn.Module):
     def forward(self, data, negative_data):
 
         x, edge_index, batch = data.x, data.edge_index, data.batch
+        x_n, edge_index_n, batch_n = negative_data.x, negative_data.edge_index, negative_data.batch
 
         pos_z = self.encoder(data)
         neg_z = self.encoder(negative_data)
@@ -180,6 +181,9 @@ class GCN(nn.Module):
         summary = global_mean_pool(pos_z, batch)
 
         graph_emb = self.outgc(summary)
+
+        pos_z, mask_ = to_dense_batch(pos_z, batch=batch)
+        neg_z, mask = to_dense_batch(neg_z, batch=batch_n)
 
         loss_val = self.loss(pos_z, neg_z, self.sigm(summary))
 
