@@ -61,13 +61,21 @@ class DGCNN(nn.Module):
 
         hidden_repres = []
 
+        print('input size ', x.size())
+
         for conv in self.convs:
             x = torch.tanh(conv(x, edge_index))
             hidden_repres.append(x)
 
+        print('after conv  ', hidden_repres[-1].size())
+
         # apply sortpool
         x_to_sortpool = torch.cat(hidden_repres, dim=1)
+
+        print('b4 sort  ', x_to_sortpool.size())
+
         x_1d = global_sort_pool(x_to_sortpool, batch, self.k)  # in the code the authors sort the last channel only
+        print('af sort  ', x_1d.size())
 
         # apply 1D convolutional layers
         x_1d = torch.unsqueeze(x_1d, dim=1)
