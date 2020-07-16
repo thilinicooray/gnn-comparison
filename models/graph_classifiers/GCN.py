@@ -111,6 +111,34 @@ class GCN_enc(nn.Module):
 
         return tot
 
+class Discriminator(nn.Module):
+    def __init__(self, n_h):
+        super(Discriminator, self).__init__()
+        self.f_k = nn.Bilinear(n_h, n_h, 1)
+
+        for m in self.modules():
+            self.weights_init(m)
+
+    def weights_init(self, m):
+        if isinstance(m, nn.Bilinear):
+            torch.nn.init.xavier_uniform_(m.weight.data)
+            if m.bias is not None:
+                m.bias.data.fill_(0.0)
+
+    def forward(self, c, h_pl, h_mi, s_bias1=None, s_bias2=None):
+        c_x = torch.unsqueeze(c, 1)
+        c_x = c_x.expand_as(h_pl)
+
+        sc_1 = torch.squeeze(self.f_k(h_pl, c_x), 2)
+        sc_2 = torch.squeeze(self.f_k(h_mi, c_x), 2)
+
+        if s_bias1 is not None:
+            sc_1 += s_bias1
+        if s_bias2 is not None:
+            sc_2 += s_bias2
+
+        return sc_1, sc_2
+
 
 class GCN(nn.Module):
 
@@ -132,6 +160,10 @@ class GCN(nn.Module):
         self.outbn = torch.nn.BatchNorm1d(dim_target)
         self.weight = nn.Linear(config['embedding_dim'], config['embedding_dim'])
 
+        self.sigm = nn.Sigmoid()
+
+        self.disc = Discriminator(config['embedding_dim'])
+
 
 
     def forward(self, data, negative_data):
@@ -146,7 +178,7 @@ class GCN(nn.Module):
 
         graph_emb = self.outgc(summary)
 
-        loss_val = self.loss(pos_z, neg_z, summary)
+        loss_val = self.loss(pos_z, neg_z, self.sigm(summary))
 
         return graph_emb, loss_val
 
@@ -166,10 +198,13 @@ class GCN(nn.Module):
 
     def loss(self, pos_z, neg_z, summary):
         r"""Computes the mutal information maximization objective."""
+
+        pos_sim, neg_sim = self.disc(summary, pos_z, neg_z)
+
         pos_loss = -torch.log(
-            self.discriminate(pos_z, summary, sigmoid=True) + EPS).mean()
+            pos_sim + EPS).mean()
         neg_loss = -torch.log(
-            1 - self.discriminate(neg_z, summary, sigmoid=True) + EPS).mean()
+            1 - neg_sim + EPS).mean()
 
         return pos_loss + neg_loss
 
