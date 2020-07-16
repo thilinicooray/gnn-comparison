@@ -27,6 +27,7 @@ class Trainer:
 
         loss_all = 0
         acc_all = 0
+        dig_loss_all = 0
         for data, neg_data in train_loader:
 
             data = data.to(self.device)
@@ -50,13 +51,14 @@ class Trainer:
 
             loss_all += loss.item() * num_graphs
             acc_all += acc.item() * num_graphs
+            dig_loss_all += dig_loss.item() * num_graphs
 
             if clipping is not None:  # Clip gradient before updating weights
                 torch.nn.utils.clip_grad_norm_(model.parameters(), clipping)
             optimizer.step()
             optimizer.zero_grad()
 
-        return acc_all / len(train_loader.dataset), loss_all / len(train_loader.dataset)
+        return acc_all / len(train_loader.dataset), loss_all / len(train_loader.dataset), dig_loss_all/ len(train_loader.dataset)
 
 
     def _eval(self, loader):
@@ -102,7 +104,7 @@ class Trainer:
         for epoch in range(1, max_epochs+1):
 
             start = time.time()
-            train_acc, train_loss = self._train(train_loader, optimizer, clipping)
+            train_acc, train_loss, dig_loss = self._train(train_loader, optimizer, clipping)
             end = time.time() - start
             time_per_epoch.append(end)
 
@@ -119,7 +121,7 @@ class Trainer:
                 max_fold_acc = val_acc
                 max_fold_val_acc_idx = epoch-1
 
-            msg = f'Fold: {fold_no}, Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} Test acc: {test_acc}'
+            msg = f'Fold: {fold_no}, Epoch: {epoch}, Train loss: {train_loss} DIG loss: {dig_loss}  Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} Test acc: {test_acc}'
             print(msg)
 
         test_acc_for_fold = fold_test_acc[max_fold_val_acc_idx]
