@@ -86,8 +86,6 @@ class GCN(nn.Module):
 
         x, edge_index, batch = data.x, data.edge_index, data.batch
 
-        edge_index, _ = add_self_loops(edge_index, num_nodes=x.size(0))
-
         x_enc = self.ingc(x, edge_index)
         x_enc = F.relu(self.inbn(x_enc))
         x = F.dropout(x_enc, self.dropout, training=self.training)
@@ -105,7 +103,7 @@ class GCN(nn.Module):
 
         #x = F.relu(self.outbn(self.outgc(tot, edge_index)))
 
-        graph_emb = global_mean_pool(x, batch)
+        graph_emb = global_mean_pool(tot, batch)
 
         graph_emb = self.outgc(graph_emb)
 
