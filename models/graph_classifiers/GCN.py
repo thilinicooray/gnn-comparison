@@ -74,7 +74,7 @@ class GCN(nn.Module):
             self.bns.append(bn2)
 
 
-        self.outgc = GraphConv(config['embedding_dim'], dim_target)
+        self.outgc = nn.Linear(config['embedding_dim'], dim_target)
         self.outbn = torch.nn.BatchNorm1d(dim_target)
 
 
@@ -97,9 +97,11 @@ class GCN(nn.Module):
 
             tot = tot + x
 
-        x = F.relu(self.outbn(self.outgc(tot, edge_index)))
+        #x = F.relu(self.outbn(self.outgc(tot, edge_index)))
 
         graph_emb = global_mean_pool(x, batch)
+
+        graph_emb = self.outgc(graph_emb)
 
         return graph_emb
 
