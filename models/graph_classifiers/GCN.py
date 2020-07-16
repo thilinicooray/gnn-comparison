@@ -128,12 +128,12 @@ class Discriminator(nn.Module):
     def forward(self, c, h_pl, h_mi):
         c_x = torch.unsqueeze(c, 1)
 
-        c_x = c_x.expand_as(h_pl)
+        c_p = c_x.expand_as(h_pl)
 
         batch_p, node_p, feat_p = h_pl.size()
 
         pos = h_pl.contiguous().view(batch_p * node_p, -1)
-        sum = c_x.contiguous().view(batch_p * node_p, -1)
+        sum = c_p.contiguous().view(batch_p * node_p, -1)
 
         sc_1 = self.f_k(pos, sum)
 
