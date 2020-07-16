@@ -132,6 +132,8 @@ class Discriminator(nn.Module):
 
         c_x = c_x.expand_as(h_pl)
 
+        a = self.f_k(h_pl, c_x)
+
         sc_1 = torch.squeeze(self.f_k(h_pl, c_x), 2)
         sc_2 = torch.squeeze(self.f_k(h_mi, c_x), 2)
 
