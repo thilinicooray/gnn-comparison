@@ -104,22 +104,6 @@ class GCN(nn.Module):
         self.outgc = Dense(config['embedding_dim'], dim_target, activation=F.relu)
         self.outbn = torch.nn.BatchNorm1d(dim_target)
 
-        #node VAE
-        self.mu_calc = GraphConv(config['embedding_dim'] , config['embedding_dim'])
-        self.var_calc = GraphConv(config['embedding_dim'] , config['embedding_dim'])
-        self.dc = InnerProductDecoder(0.0, act=lambda x: x)
-
-    def reparameterize(self, mu, logvar):
-        if self.training:
-            std = torch.exp(logvar)
-            eps = torch.randn_like(std)
-            return eps.mul(std).add_(mu)
-        else:
-            return mu
-
-    def encode(self, x, adj):
-        hidden1 = x
-        return F.relu(self.mu_calc(hidden1, adj)), F.relu(self.var_calc(hidden1, adj))
 
 
     def forward(self, data):
@@ -141,19 +125,6 @@ class GCN(nn.Module):
 
             tot = tot + x
 
-        #GAE
-        mu, logvar = self.encode(x, edge_index)
-        z = self.reparameterize(mu, logvar)
-
-        print('before ', z.size(), edge_index.size())
-
-        rep, mask = to_dense_batch(z, batch=batch)
-        adj = to_dense_adj(edge_index, batch=batch)
-        print('after ', z.size(), adj.size())
-
-        decoded = self.dc(rep)
-
-        vae_loss = loss_function(mu, logvar, decoded, adj)
 
         #graph
         graph_emb = global_mean_pool(tot, batch)

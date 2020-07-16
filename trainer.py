@@ -27,7 +27,9 @@ class Trainer:
 
         loss_all = 0
         acc_all = 0
-        for data in train_loader:
+        for data, neg_data in train_loader:
+
+            print('data', data.size(), neg_data.size())
 
             data = data.to(self.device)
             optimizer.zero_grad()

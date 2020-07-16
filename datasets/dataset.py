@@ -54,7 +54,8 @@ class GraphDatasetSubset(GraphDataset):
         self.indices = indices
 
     def __getitem__(self, index):
-        return self.data[self.indices[index]]
+        negative_idx = 0 if index == len(self.indices)-1 else index + 1
+        return self.data[self.indices[index]], self.data[self.indices[negative_idx]]
 
     def __len__(self):
         return len(self.indices)
