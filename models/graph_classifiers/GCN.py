@@ -84,6 +84,7 @@ class GCN(nn.Module):
         x_enc = self.ingc(x, edge_index)
         x_enc = F.relu(self.inbn(x_enc))
         x = F.dropout(x_enc, self.dropout, training=self.training)
+        tot = x
 
         for i in range(len(self.midlayer)):
 
@@ -93,7 +94,9 @@ class GCN(nn.Module):
             x = F.relu(bn(midgc(x, edge_index)))
             x = F.dropout(x, self.dropout, training=self.training)
 
-        x = self.outgc(x, edge_index)
+            tot = tot + x
+
+        x = self.outgc(tot, edge_index)
 
         graph_emb = global_mean_pool(x, batch)
 
