@@ -24,6 +24,10 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
+    seed = 42
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
     if args.dataset_name != 'none':
         datasets = [args.dataset_name]
