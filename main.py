@@ -80,42 +80,46 @@ if __name__ == "__main__":
         for fold in range(10): #10 fold cross validation
             begin_time = time.time()
 
-            #initialize the model
-            model = DGCNN(dim_features=dataset._dim_features, dim_target=dataset._dim_target,
-                          config={'embedding_dim':config_file['embedding_dim'][0], 'num_layers':config_file['num_layers'][0],
-                                  'k':config_file['k'][0], 'dataset_name': dataset_name, 'dense_dim':config_file['dense_dim'][0]})
-
-
-
-            #todo: dense option
-
-            net = trainer_base.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
-
-            optimizer = torch.optim.Adam(model.parameters(),
-                                         lr=learning_rate, weight_decay=config_file['l2'][0])
-
-            if sched_class is not None:
-                scheduler = sched_class(optimizer)
-            else:
-                scheduler = None
-
-
             dataset_getter = DatasetGetter(fold)
 
             train_loader, val_loader = dataset_getter.get_train_val(dataset, batch_size,
                                                                     shuffle=True)
             test_loader = dataset_getter.get_test(dataset, batch_size, shuffle=False)
 
-            #obtain final results
-            test_acc, best_epoch = \
-                net.train(train_loader=train_loader, max_epochs=num_epochs,fold_no=fold+1,
-                          optimizer=optimizer, scheduler=scheduler, clipping=clipping,
-                          validation_loader=val_loader, test_loader=test_loader)
+            for i in range(5):
+
+                #initialize the model
+                model = DGCNN(dim_features=dataset._dim_features, dim_target=dataset._dim_target,
+                              config={'embedding_dim':config_file['embedding_dim'][0], 'num_layers':config_file['num_layers'][0],
+                                      'k':config_file['k'][0], 'dataset_name': dataset_name, 'dense_dim':config_file['dense_dim'][0]})
 
 
-            accs.append(test_acc)
-            best_val_epoch.append(best_epoch)
-            print('No '+ str(fold+1) + ' fold  train+evaluation takes %.3f minutes\n'%((time.time()-begin_time)/60))
+
+                #todo: dense option
+
+                net = trainer_base.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
+
+                optimizer = torch.optim.Adam(model.parameters(),
+                                             lr=learning_rate, weight_decay=config_file['l2'][0])
+
+                if sched_class is not None:
+                    scheduler = sched_class(optimizer)
+                else:
+                    scheduler = None
+
+
+
+
+                #obtain final results
+                test_acc, best_epoch = \
+                    net.train(train_loader=train_loader, max_epochs=num_epochs,fold_no=fold+1,run_no=i+1,
+                              optimizer=optimizer, scheduler=scheduler, clipping=clipping,
+                              validation_loader=val_loader, test_loader=test_loader)
+
+
+                accs.append(test_acc)
+                best_val_epoch.append(best_epoch)
+                print('No '+ str(fold+1) + ' fold  train+evaluation takes %.3f minutes\n'%((time.time()-begin_time)/60))
 
         for idx in range(len(accs)):
             print('Fold {} Test accuracy: {:.4f} using Best Validation Set Performing Epoch: {}\n'.format(idx+1, accs[idx], best_val_epoch[idx]))
