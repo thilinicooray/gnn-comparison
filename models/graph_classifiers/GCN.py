@@ -146,7 +146,7 @@ class Discriminator(nn.Module):
 
         sc_2 = self.f_k(neg, sum_n)
 
-        return torch.sigmoid(sc_1), torch.sigmoid(sc_2)
+        return F.relu(sc_1), F.relu(sc_2)
 
 
 class GCN(nn.Module):
@@ -189,16 +189,18 @@ class GCN(nn.Module):
         graph_emb = self.outgc(summary)
 
         pos_z, mask_ = to_dense_batch(pos_z, batch=batch)
-        neg_z, mask = to_dense_batch(neg_z, batch=batch_n)
+        neg_z, mask_n = to_dense_batch(neg_z, batch=batch_n)
 
-        loss_val = self.loss(pos_z, neg_z, self.sigm(summary))
+        loss_val = self.loss(pos_z, neg_z, mask_, mask_n, self.sigm(summary))
 
         return graph_emb, loss_val
 
-    def loss(self, pos_z, neg_z, summary):
+    def loss(self, pos_z, neg_z, mask_, mask_n,summary):
         r"""Computes the mutal information maximization objective."""
 
         pos_sim, neg_sim = self.disc(summary, pos_z, neg_z)
+
+        #print(pos_z.size(), pos_sim.size())
 
         pos_loss = -torch.log(
             pos_sim + EPS).mean()
