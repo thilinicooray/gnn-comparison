@@ -24,6 +24,6 @@ l2:
 embedding_dim:
   - 32
 num_layers:
-  - 2
+  - 4
 dropout:
   - 0.5
