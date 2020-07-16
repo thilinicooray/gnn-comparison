@@ -91,7 +91,7 @@ class Trainer:
         # Mitigate bad random initializations
         #for i in range(3):
         max_fold_val_acc_idx = 0
-        min_fold_loss = 10000
+        max_fold_acc = 0
         fold_test_acc = []
 
         for epoch in range(1, max_epochs+1):
@@ -110,8 +110,8 @@ class Trainer:
 
 
             fold_test_acc.append(test_acc)
-            if min_fold_loss > val_loss: #model selection based on val acc
-                min_fold_loss = val_loss
+            if max_fold_acc < val_acc: #model selection based on val acc
+                max_fold_acc = val_acc
                 max_fold_val_acc_idx = epoch-1
 
             msg = f'Fold: {fold_no}, Epoch: {epoch}, Train loss: {train_loss} Train acc: {train_acc}, Val loss: {val_loss} Val acc: {val_acc} Test acc: {test_acc}'
