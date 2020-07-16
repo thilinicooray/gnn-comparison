@@ -38,7 +38,9 @@ class Batch(data.Batch):
             v_plus = [d.v_plus[:] for d in data_list]
 
         copy_data = []
-        for d in data_list:
+        copy_negative_data = []
+        for input in data_list:
+            (d, n) = input
             copy_data.append(Data(x=d.x,
                                   y=d.y,
                                   edge_index=d.edge_index,
@@ -49,8 +51,22 @@ class Batch(data.Batch):
                                   o_outs=d.o_outs)
                              )
 
+            copy_negative_data.append(Data(x=n.x,
+                                  y=n.y,
+                                  edge_index=n.edge_index,
+                                  edge_attr=n.edge_attr,
+                                  v_outs=n.v_outs,
+                                  g_outs=n.g_outs,
+                                  e_outs=n.e_outs,
+                                  o_outs=n.o_outs)
+                             )
+
         batch = data.Batch.from_data_list(copy_data, follow_batch=follow_batch)
+        batch_n = data.Batch.from_data_list(copy_negative_data, follow_batch=follow_batch)
         batch['laplacians'] = laplacians
         batch['v_plus'] = v_plus
 
-        return batch
+        batch_n['laplacians'] = laplacians
+        batch_n['v_plus'] = v_plus
+
+        return batch, batch_n
