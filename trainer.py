@@ -29,19 +29,19 @@ class Trainer:
         acc_all = 0
         for data, neg_data in train_loader:
 
-            print(data, 'ANDDDDD',  neg_data)
-
             data = data.to(self.device)
             neg_data = neg_data.to(self.device)
             optimizer.zero_grad()
-            output = model(data)
+            output, dig_loss = model(data, neg_data)
 
             if not isinstance(output, tuple):
                 output = (output,)
 
             loss, acc = self.loss_fun(data.y, *output)
 
-            loss.backward()
+            final_loss = loss + dig_loss
+
+            final_loss.backward()
 
             try:
                 num_graphs = data.num_graphs
@@ -65,9 +65,10 @@ class Trainer:
 
         loss_all = 0
         acc_all = 0
-        for data in loader:
+        for data, neg_data in loader:
             data = data.to(self.device)
-            output = model(data)
+            neg_data = neg_data.to(self.device)
+            output, _ = model(data, neg_data)
 
             if not isinstance(output, tuple):
                 output = (output,)

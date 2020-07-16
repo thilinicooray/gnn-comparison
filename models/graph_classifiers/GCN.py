@@ -11,6 +11,8 @@ from torch.nn import BatchNorm1d
 from torch.nn import Sequential, Linear, ReLU
 from torch_geometric.nn import GINConv, global_add_pool, global_mean_pool
 
+EPS = 1e-15
+
 def loss_function(mu, logvar, decoded, real, n_nodes = 8):
 
     print('values ', mu.size(), logvar.size(), decoded.size(), real.size())
@@ -60,22 +62,7 @@ class Dense(Module):
                + str(self.in_features) + ' -> ' \
                + str(self.out_features) + ')'
 
-
-
-class InnerProductDecoder(nn.Module):
-    """Decoder for using inner product for prediction."""
-
-    def __init__(self, dropout, act=torch.sigmoid):
-        super(InnerProductDecoder, self).__init__()
-        self.dropout = dropout
-        self.act = act
-
-    def forward(self, z):
-        z = F.dropout(z, self.dropout, training=self.training)
-        adj = self.act(torch.bmm(z, torch.transpose(z, 1,2)))
-        return adj
-
-class GCN(nn.Module):
+class GCN_enc(nn.Module):
 
     def __init__(self,
                  dim_features,
@@ -85,7 +72,7 @@ class GCN(nn.Module):
                  withbn=True,
                  withloop=True):
 
-        super(GCN, self).__init__()
+        super(GCN_enc, self).__init__()
 
         self.dropout = config['dropout']
 
@@ -99,10 +86,6 @@ class GCN(nn.Module):
             self.midlayer.append(gcb)
             bn2 = torch.nn.BatchNorm1d(config['embedding_dim'])
             self.bns.append(bn2)
-
-
-        self.outgc = Dense(config['embedding_dim'], dim_target, activation=F.relu)
-        self.outbn = torch.nn.BatchNorm1d(dim_target)
 
 
 
@@ -126,10 +109,67 @@ class GCN(nn.Module):
             tot = tot + x
 
 
+        return tot
+
+
+class GCN(nn.Module):
+
+    def __init__(self,
+                 dim_features,
+                 dim_target,
+                 config,
+                 activation=lambda x: x,
+                 withbn=True,
+                 withloop=True):
+
+        super(GCN, self).__init__()
+
+        self.encoder = GCN_enc(dim_features,
+                               dim_target,
+                               config,)
+
+        self.outgc = Dense(config['embedding_dim'], dim_target, activation=F.relu)
+        self.outbn = torch.nn.BatchNorm1d(dim_target)
+        self.weight = Parameter(torch.Tensor(config['embedding_dim'], config['embedding_dim']))
+
+
+
+    def forward(self, data, negative_data):
+
+        x, edge_index, batch = data.x, data.edge_index, data.batch
+
+        pos_z = self.encoder(data)
+        neg_z = self.encoder(negative_data)
+
         #graph
-        graph_emb = global_mean_pool(tot, batch)
+        summary = global_mean_pool(pos_z, batch)
 
-        graph_emb = self.outgc(graph_emb)
+        graph_emb = self.outgc(summary)
 
-        return graph_emb
+        loss_val = self.loss(pos_z, neg_z, summary)
+
+        return graph_emb, loss_val
+
+    def discriminate(self, z, summary, sigmoid=True):
+        r"""Given the patch-summary pair :obj:`z` and :obj:`summary`, computes
+        the probability scores assigned to this patch-summary pair.
+
+        Args:
+            z (Tensor): The latent space.
+            sigmoid (bool, optional): If set to :obj:`False`, does not apply
+                the logistic sigmoid function to the output.
+                (default: :obj:`True`)
+        """
+        value = torch.matmul(z, torch.matmul(self.weight, summary))
+        return torch.sigmoid(value) if sigmoid else value
+
+
+    def loss(self, pos_z, neg_z, summary):
+        r"""Computes the mutal information maximization objective."""
+        pos_loss = -torch.log(
+            self.discriminate(pos_z, summary, sigmoid=True) + EPS).mean()
+        neg_loss = -torch.log(
+            1 - self.discriminate(neg_z, summary, sigmoid=True) + EPS).mean()
+
+        return pos_loss + neg_loss
 
