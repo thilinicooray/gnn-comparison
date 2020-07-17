@@ -9,7 +9,7 @@ from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, ExponentialLR
 from datasets import *
 from models.modules import (BinaryClassificationLoss, MulticlassClassificationLoss,
                             NN4GMulticlassClassificationLoss, DiffPoolMulticlassClassificationLoss)
-import trainer
+import trainer_base
 from evaluation.dataset_getter import DatasetGetter
 from models.graph_classifiers.GIN import GIN
 from config import utils
@@ -95,7 +95,7 @@ if __name__ == "__main__":
                             config={'hidden_units':config_file['hidden_units'][0], 'train_eps':config_file['train_eps'][0],
                                     'dropout' : config_file['dropout'][0], 'aggregation':config_file['aggregation'][0]})
 
-                net = trainer.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
+                net = trainer_base.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
 
                 optimizer = torch.optim.Adam(model.parameters(),
                                              lr=learning_rate, weight_decay=config_file['l2'][0])
