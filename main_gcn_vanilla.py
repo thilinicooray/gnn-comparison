@@ -10,7 +10,7 @@ from models.modules import (BinaryClassificationLoss, MulticlassClassificationLo
                             NN4GMulticlassClassificationLoss, DiffPoolMulticlassClassificationLoss)
 import trainer_base
 from evaluation.dataset_getter import DatasetGetter
-from models.graph_classifiers.GCN_vanilla import GCN_vanilla
+from models.graph_classifiers.GCN_vanilla import GCN
 from config import utils
 
 def get_args():
@@ -89,7 +89,7 @@ if __name__ == "__main__":
             for i in range(5):
 
                 #initialize the model
-                model = GCN_vanilla(dim_features=dataset._dim_features, dim_target=dataset._dim_target,
+                model = GCN(dim_features=dataset._dim_features, dim_target=dataset._dim_target,
                                     config={'embedding_dim':config_file['embedding_dim'][0], 'num_layers':config_file['num_layers'][0],
                                             'dropout' : config_file['dropout'][0], 'dense_dim':config_file['dense_dim'][0]})
 
