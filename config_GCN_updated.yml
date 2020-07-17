@@ -23,7 +23,7 @@ loss:
 gradient_clipping:
   - null
 l2:
-  -0.0001
+  - 0.00001
 embedding_dim:
   - 32
 num_layers:
