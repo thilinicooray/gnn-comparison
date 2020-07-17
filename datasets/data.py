@@ -64,7 +64,8 @@ class Batch(data.Batch):
                              )
 
         batch = data.Batch.from_data_list(copy_data, follow_batch=follow_batch)
-        batch_n = data.Batch.from_data_list(random.shuffle(copy_data), follow_batch=follow_batch)
+        random.shuffle(copy_data)
+        batch_n = data.Batch.from_data_list(copy_data, follow_batch=follow_batch)
         batch['laplacians'] = laplacians
         batch['v_plus'] = v_plus
 
