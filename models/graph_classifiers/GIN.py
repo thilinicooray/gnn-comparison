@@ -43,7 +43,7 @@ class GIN(torch.nn.Module):
         self.convs = torch.nn.ModuleList(self.convs)
         self.linears = torch.nn.ModuleList(self.linears)  # has got one more for initial input
 
-    def forward(self, data, _):
+    def forward(self, data):
         x, edge_index, batch = data.x, data.edge_index, data.batch
 
         out = 0
