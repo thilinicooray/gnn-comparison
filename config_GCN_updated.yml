@@ -8,9 +8,9 @@ dense_dim:
   - 128
 
 learning_rate:
-  - 0.0001
+  - 0.001
 num_epochs:
-  - 200
+  - 500
 optimizer:
   - Adam
 scheduler:

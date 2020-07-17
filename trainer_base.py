@@ -112,7 +112,7 @@ class Trainer:
 
 
             fold_test_acc.append(test_acc)
-            if max_fold_acc < val_acc: #model selection based on val acc
+            if epoch > 50 and max_fold_acc < val_acc: #model selection based on val acc
                 max_fold_acc = val_acc
                 max_fold_val_acc_idx = epoch-1
 
