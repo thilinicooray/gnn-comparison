@@ -4,7 +4,7 @@ import random
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, ExponentialLR
 
 from datasets import *
 from models.modules import (BinaryClassificationLoss, MulticlassClassificationLoss,
@@ -59,7 +59,8 @@ if __name__ == "__main__":
 
     schedulers = {
         'StepLR': StepLR,
-        'ReduceLROnPlateau': ReduceLROnPlateau
+        'ReduceLROnPlateau': ReduceLROnPlateau,
+        'ExponentialLR' : ExponentialLR
     }
 
     config_file = utils.read_config_file(args.config_file)
