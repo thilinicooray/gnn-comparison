@@ -14,7 +14,11 @@ num_epochs:
 optimizer:
   - Adam
 scheduler:
-  - null
+  -
+    class: StepLR
+    args:
+      step_size: 50
+      gamma: 0.5
 loss:
   - MulticlassClassificationLoss
 gradient_clipping:
