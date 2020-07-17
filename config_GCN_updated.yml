@@ -15,9 +15,10 @@ optimizer:
   - Adam
 scheduler:
   -
-    class: ExponentialLR
+    class: StepLR
     args:
-      gamma: 0.5
+      step_size: 50
+      gamma: 0.1
 loss:
   - MulticlassClassificationLoss
 gradient_clipping:
