@@ -31,7 +31,8 @@ class Trainer:
         for data, neg_data in train_loader:
 
             data = data.to(self.device)
-            neg_data = neg_data.to(self.device)
+            neg_data = data[torch.randperm(data.size()[0])]
+
             optimizer.zero_grad()
             output, dig_loss = model(data, neg_data)
 
@@ -69,7 +70,7 @@ class Trainer:
         acc_all = 0
         for data, neg_data in loader:
             data = data.to(self.device)
-            neg_data = neg_data.to(self.device)
+            neg_data = data[torch.randperm(data.size()[0])]
             output, _ = model(data, neg_data)
 
             if not isinstance(output, tuple):
