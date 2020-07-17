@@ -1,0 +1,133 @@
+import argparse
+import time
+import random
+import numpy as np
+import torch
+import torch.nn.functional as F
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, ExponentialLR
+
+from datasets import *
+from models.modules import (BinaryClassificationLoss, MulticlassClassificationLoss,
+                            NN4GMulticlassClassificationLoss, DiffPoolMulticlassClassificationLoss)
+import trainer
+from evaluation.dataset_getter import DatasetGetter
+from models.graph_classifiers.GIN import GIN
+from config import utils
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config-file', dest='config_file')
+    parser.add_argument('--result-folder', dest='result_folder', default='RESULTS')
+    parser.add_argument('--dataset-name', dest='dataset_name', default='none')
+    parser.add_argument('--debug', action="store_true", dest='debug')
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = get_args()
+    seed = 42
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+    if args.dataset_name != 'none':
+        datasets = [args.dataset_name]
+    else:
+        datasets = ['IMDB-MULTI', 'IMDB-BINARY', 'PROTEINS', 'NCI1', 'ENZYMES', 'DD',
+                    'REDDIT-BINARY', 'REDDIT-MULTI-5K', 'COLLAB', 'REDDIT-MULTI-12K']
+
+    dataset_classes = {
+        'NCI1': NCI1,
+        'IMDB-BINARY': IMDBBinary,
+        'IMDB-MULTI': IMDBMulti,
+        'COLLAB': Collab,
+        'REDDIT-BINARY': RedditBinary,
+        'REDDIT-MULTI-5K': Reddit5K,
+        'PROTEINS': Proteins,
+        'ENZYMES': Enzymes,
+        'DD': DD,
+    }
+
+    losses = {
+        'BinaryClassificationLoss': BinaryClassificationLoss,
+        'MulticlassClassificationLoss': MulticlassClassificationLoss,
+        'NN4GMulticlassClassificationLoss': NN4GMulticlassClassificationLoss,
+        'DiffPoolMulticlassClassificationLoss': DiffPoolMulticlassClassificationLoss,
+
+    }
+
+    schedulers = {
+        'StepLR': StepLR,
+        'ReduceLROnPlateau': ReduceLROnPlateau,
+        'ExponentialLR' : ExponentialLR
+    }
+
+    config_file = utils.read_config_file(args.config_file)
+
+    print('\nInput Arguments :\n', config_file, args, '\n')
+
+    for dataset_name in datasets:
+        learning_rate = config_file['learning_rate'][0]
+        batch_size = config_file['batch_size'][0]
+        num_epochs = config_file['num_epochs'][0]
+        #drop_out = config_file['drop_out']
+        #seed = config_file['seed']
+        clipping = config_file['gradient_clipping'][0]
+        scheduler_info = config_file['scheduler'][0]
+
+        dataset_class = dataset_classes[dataset_name]  # dataset_class()
+        dataset = dataset_class()
+
+
+        accs = []
+        best_val_epoch = []
+        for fold in range(10): #10 fold cross validation
+            begin_time = time.time()
+            dataset_getter = DatasetGetter(fold)
+            train_loader, val_loader = dataset_getter.get_train_val(dataset, batch_size,
+                                                                    shuffle=True)
+            test_loader = dataset_getter.get_test(dataset, batch_size, shuffle=False)
+
+            for i in range(5):
+
+                #initialize the model
+                model = GIN(dim_features=dataset._dim_features, dim_target=dataset._dim_target,
+                            config={'hidden_units':config_file['hidden_units'][0], 'train_eps':config_file['train_eps'][0],
+                                    'dropout' : config_file['dropout'][0], 'aggregation':config_file['aggregation'][0]})
+
+                net = trainer.Trainer(model, losses[config_file['loss'][0]], device=config_file['device'][0])
+
+                optimizer = torch.optim.Adam(model.parameters(),
+                                             lr=learning_rate, weight_decay=config_file['l2'][0])
+
+                if scheduler_info is not None:
+                    sched_s = scheduler_info['class']
+                    args = scheduler_info['args']
+                    scheduler = schedulers[sched_s](optimizer, **args)
+                else:
+                    scheduler = None
+
+                #obtain final results
+                test_acc, best_epoch = \
+                    net.train(train_loader=train_loader, max_epochs=num_epochs,fold_no=fold+1,run_no=i+1,
+                              optimizer=optimizer, scheduler=scheduler, clipping=clipping,
+                              validation_loader=val_loader, test_loader=test_loader)
+
+
+                accs.append(test_acc)
+                best_val_epoch.append(best_epoch)
+                print('No '+ str(fold+1) + ' fold  train+evaluation takes %.3f minutes\n'%((time.time()-begin_time)/60))
+
+        for idx in range(len(accs)):
+            print('Fold {} Test accuracy: {:.4f} using Best Validation Set Performing Epoch: {}\n'.format(idx+1, accs[idx], best_val_epoch[idx]))
+            #print('Fold {} Test accuracy: {:.4f} using Best Validation Set Performing Epoch\n'.format(idx+1, accs[idx]))
+
+        accs = np.array(accs)
+        mean = np.mean(accs)
+        std = np.std(accs)
+        print(dataset_name + ' dataset has the following results: ')
+        print('Mean: {:.2f}'.format(mean))
+        print('Std: {:.2f}'.format(std))
+
+
+
