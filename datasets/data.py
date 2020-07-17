@@ -1,5 +1,7 @@
 from torch_geometric import data
 
+import random
+
 
 class Data(data.Data):
     def __init__(self,
@@ -62,7 +64,7 @@ class Batch(data.Batch):
                              )
 
         batch = data.Batch.from_data_list(copy_data, follow_batch=follow_batch)
-        batch_n = data.Batch.from_data_list(copy_negative_data, follow_batch=follow_batch)
+        batch_n = data.Batch.from_data_list(random.shuffle(copy_data), follow_batch=follow_batch)
         batch['laplacians'] = laplacians
         batch['v_plus'] = v_plus
 
