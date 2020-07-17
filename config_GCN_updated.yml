@@ -17,11 +17,11 @@ scheduler:
   -
     class: ExponentialLR
     args:
-      gamma: 0.9
+      gamma: 0.5
 loss:
   - MulticlassClassificationLoss
 gradient_clipping:
-  - 0.25
+  - null
 l2:
   - 0.0
 embedding_dim:
