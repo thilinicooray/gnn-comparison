@@ -4,6 +4,7 @@ import random
 import numpy as np
 import torch
 import torch.nn.functional as F
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, ExponentialLR
 
 from datasets import *
 from models.modules import (BinaryClassificationLoss, MulticlassClassificationLoss,
@@ -55,6 +56,12 @@ if __name__ == "__main__":
 
     }
 
+    schedulers = {
+        'StepLR': StepLR,
+        'ReduceLROnPlateau': ReduceLROnPlateau,
+        'ExponentialLR' : ExponentialLR
+    }
+
     config_file = utils.read_config_file(args.config_file)
 
     print('\nInput Arguments :\n', config_file, args, '\n')
@@ -66,7 +73,7 @@ if __name__ == "__main__":
         #drop_out = config_file['drop_out']
         #seed = config_file['seed']
         clipping = config_file['gradient_clipping'][0]
-        sched_class = config_file['scheduler'][0]
+        scheduler_info = config_file['scheduler'][0]
 
         dataset_class = dataset_classes[dataset_name]  # dataset_class()
         dataset = dataset_class()
@@ -93,8 +100,10 @@ if __name__ == "__main__":
                 optimizer = torch.optim.Adam(model.parameters(),
                                              lr=learning_rate, weight_decay=config_file['l2'][0])
 
-                if sched_class is not None:
-                    scheduler = sched_class(optimizer)
+                if scheduler_info is not None:
+                    sched_s = scheduler_info['class']
+                    args = scheduler_info['args']
+                    scheduler = schedulers[sched_s](optimizer, **args)
                 else:
                     scheduler = None
 
