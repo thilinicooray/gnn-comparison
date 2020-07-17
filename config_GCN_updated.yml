@@ -21,9 +21,9 @@ scheduler:
 loss:
   - MulticlassClassificationLoss
 gradient_clipping:
-  - null
+  - 0.25
 l2:
-  - 0.0001
+  - 0.0
 embedding_dim:
   - 32
 num_layers:
